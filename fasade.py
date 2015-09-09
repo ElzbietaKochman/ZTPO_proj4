@@ -1,4 +1,4 @@
-from wykres import Ui_MainWindow, _translate
+from layout import Ui_MainWindow, _translate
 from PyQt4 import QtGui
 from chartType import chart, changeText
 from chartApp import matChart
@@ -23,7 +23,7 @@ class WykresApp(QtGui.QMainWindow):
 
         self.ui.wybierz.clicked.connect(self.selectFile)
         self.fileSelect = QtGui.QFileDialog(self)
-        self.ui.rysuj.clicked.connect(self.rysujWykres)
+        self.ui.rysuj.clicked.connect(self.printChart)
         self.scene = QtGui.QGraphicsScene()
         self.ui.slupkowy.clicked.connect(self.getSelectedRadio)
         self.ui.kolowy.clicked.connect(self.getSelectedRadio)
@@ -43,9 +43,9 @@ class WykresApp(QtGui.QMainWindow):
     def selectFile(self):
         self.fileSelect.name = self.fileSelect.getOpenFileName()
         self.ui.plik.setText(self.fileSelect.name)
-        self.otworzPlik()
+        self.openFile()
 
-    def otworzPlik(self):
+    def openFile(self):
         with open(self.fileSelect.name, "r") as csvfile:
             file = csv.reader(csvfile, delimiter=',')
             for row in file:
@@ -61,17 +61,15 @@ class WykresApp(QtGui.QMainWindow):
     def getSelectedRadio(self):
         chartType = chart()
         changeText(chartType, self)  # rejestrowanie obserwatora
-        if self.ui.liniowy.isChecked():
-            chartType.setTextAndObject("Plik tekstowy, gdzie wierszem jest dwójka \n(x,y)", self.ui.liniowy)
-        elif self.ui.kolowy.isChecked():
-            chartType.setTextAndObject("Plik tekstowy, gdzie wierszem jest dwójka \n(x, nazwa zmiennej)\n"
-                                       "kolor - nie dotyczy", self.ui.kolowy)
-        elif self.ui.punktowy.isChecked():
-            chartType.setTextAndObject("Plik tekstowy, gdzie wierszem jest dwójka \n(x,y)", self.ui.punktowy)
-        elif self.ui.slupkowy.isChecked():
-            chartType.setTextAndObject("Plik tekstowy, gdzie wierszem jest dwójka \n(x,y)", self.ui.slupkowy)
+        for radio in self.ui.groupBox.children():
+            if radio.isChecked():
+                if "kolowy" != radio.objectName():
+                    chartType.setTextAndObject("Plik tekstowy, gdzie wierszem jest dwójka \n(x,y)", radio)
+                else:
+                    chartType.setTextAndObject("Plik tekstowy, gdzie wierszem jest dwójka \n(x, nazwa zmiennej)\n"
+                                               "kolor - nie dotyczy", radio)
 
-    def rysujWykres(self):
+    def printChart(self):
         mpl.cla()
         charter = matChart()
         drawCorrectChart(charter, self.ui.selectedRadio.objectName(), self.ui.theX, self.ui.theY,
